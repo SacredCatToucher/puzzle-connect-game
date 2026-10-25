@@ -33,10 +33,12 @@ jobs:
       - name: Install isolated browser test runtime
         run: |
           npm install --prefix "$RUNNER_TEMP/browser-tests" --ignore-scripts --no-fund --no-audit playwright@1.56.1
-          "$RUNNER_TEMP/browser-tests/node_modules/.bin/playwright" install --with-deps chromium
+          test -x /usr/bin/google-chrome
+          /usr/bin/google-chrome --version
       - name: Test photo/number modes, outlines, drags, preferences and responsive uploads
         env:
           PLAYWRIGHT_MODULE: ${{ runner.temp }}/browser-tests/node_modules/playwright
+          CHROME_PATH: /usr/bin/google-chrome
         run: |
           node scripts/check-visuals.mjs
           node scripts/check-beta-smoke.mjs
