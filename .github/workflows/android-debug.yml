@@ -1,0 +1,69 @@
+name: Android debug APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'package*.json'
+      - '.nvmrc'
+      - 'capacitor.config.json'
+      - 'android/**'
+      - 'scripts/**'
+      - '.github/workflows/android-debug.yml'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-debug-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21.0.8+9'
+      - name: Install locked npm dependencies
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Check game and sync identical web assets
+        run: |
+          npm run check
+          npm run android:sync
+          cmp index.html android/app/src/main/assets/public/index.html
+      - name: Install Android SDK packages
+        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - name: Assemble signed debug APK
+        working-directory: android
+        run: bash gradlew --no-daemon --max-workers=2 assembleDebug
+      - name: Verify APK signature, metadata and embedded game
+        run: |
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | tee apk-metadata.txt
+          unzip -p "$APK" assets/public/index.html | cmp index.html -
+          mkdir -p artifacts
+          cp "$APK" artifacts/puzzle-connect-v0.5-debug.apk
+          cp apk-metadata.txt artifacts/
+          printf 'commit=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > artifacts/build-info.txt
+          (cd artifacts && sha256sum puzzle-connect-v0.5-debug.apk > SHA256SUMS.txt)
+          echo '### Android debug APK' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Download the artifact below, unzip it, then install puzzle-connect-v0.5-debug.apk. See README for phone instructions.' >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/build-info.txt >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: puzzle-connect-v0.5-debug-${{ github.run_number }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
