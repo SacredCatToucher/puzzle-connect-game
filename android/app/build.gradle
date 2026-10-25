@@ -22,7 +22,6 @@ android {
             // Separate install preserves the existing v0.5 app and its local data.
             applicationIdSuffix ".beta"
             versionNameSuffix "-beta"
-            resValue "string", "app_name", "Puzzle Connect Beta"
         }
         release {
             minifyEnabled false
