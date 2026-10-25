@@ -43,7 +43,7 @@ jobs:
           npm run android:sync
           cmp index.html android/app/src/main/assets/public/index.html
       - name: Install Android SDK packages
-        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;35.0.0"'
       - name: Assemble signed debug APK
         working-directory: android
         run: bash gradlew --no-daemon --max-workers=2 assembleDebug
