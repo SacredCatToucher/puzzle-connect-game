@@ -1,0 +1,113 @@
+name: Combined stable and beta Pages
+on:
+  push:
+    branches: [feature/group-visuals-number-toggle]
+    paths:
+      - '.github/pages-beta.json'
+      - '.github/workflows/pages-beta.yml'
+      - 'scripts/pages-*'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: combined-github-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      enabled: ${{ steps.config.outputs.enabled }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - name: Validate pinned sources and explicit deployment switch
+        id: config
+        run: node scripts/pages-assemble.mjs config
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ steps.config.outputs.stable }}
+          path: stable-source
+          persist-credentials: false
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ steps.config.outputs.beta }}
+          path: beta-source
+          persist-credentials: false
+      - name: Test assembly and byte-level protections (no APK, no BFS)
+        run: |
+          node scripts/pages-assemble.test.mjs
+          node scripts/pages-assemble.mjs
+      - name: Install browser test driver using preinstalled Chrome
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pages-tests" --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          test -x /usr/bin/google-chrome
+      - name: Verify root v0.5 and beta load and play separately
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/pages-tests/node_modules/playwright
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node scripts/pages-browser.mjs
+      - name: Upload complete combined site (never a beta-only Pages artifact)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          name: github-pages-combined
+          path: _site
+      - name: Explain deployment status
+        run: |
+          echo 'Stable: aa3bc1a6b3b72f950b3cfea7235e6ee5df58e343 at /' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Beta game: 3c412a014155fb80ef9383de8e2cbbc755e94600 at /beta/' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Deploy enabled: ${{ steps.config.outputs.enabled }}. See docs/pages-beta.md for one-time setup.' >> "$GITHUB_STEP_SUMMARY"
+  deploy:
+    needs: build
+    if: needs.build.outputs.enabled == 'true' && github.ref == 'refs/heads/feature/group-visuals-number-toggle'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Read existing Pages configuration without changing its source
+        uses: actions/configure-pages@v5
+        with:
+          enablement: false
+      - name: Deploy the single combined artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-combined
+  verify:
+    needs: deploy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - name: Download this run's exact combined artifact for expected hashes
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages-combined
+          path: pages-package
+      - name: Extract expected published files
+        run: |
+          mkdir _site
+          tar -xf pages-package/artifact.tar -C _site
+      - name: Install browser driver
+        run: npm install --prefix "$RUNNER_TEMP/pages-tests" --ignore-scripts --no-audit --no-fund playwright@1.56.1
+      - name: Verify public HTTP 200, both hashes and live beta gameplay
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/pages-tests/node_modules/playwright
+          CHROME_PATH: /usr/bin/google-chrome
+          PAGES_LIVE_URL: https://sacredcattoucher.github.io/puzzle-connect-game/
+        run: node scripts/pages-browser.mjs
