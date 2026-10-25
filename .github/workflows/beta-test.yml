@@ -1,0 +1,99 @@
+name: Beta test build
+on:
+  push:
+    branches: [feature/group-visuals-number-toggle]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: beta-test-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test-and-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '21.0.13+9.0.LTS'
+      - name: Install locked app dependencies
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Check web, presentation logic and full A1/A2 regressions (no BFS)
+        run: |
+          npm run check
+          node scripts/check-render-logic.mjs
+          node analysis/stage-a/reversibility.test.mjs
+      - name: Install isolated browser test runtime
+        run: |
+          npm install --prefix "$RUNNER_TEMP/browser-tests" --ignore-scripts --no-fund --no-audit playwright@1.56.1
+          "$RUNNER_TEMP/browser-tests/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Test photo/number modes, outlines, drags, preferences and responsive uploads
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/browser-tests/node_modules/playwright
+        run: |
+          node scripts/check-visuals.mjs
+          node scripts/check-beta-smoke.mjs
+      - name: Prepare website bundle and sync byte-identical Android assets
+        run: |
+          node scripts/prepare-beta.mjs
+          npm run android:sync
+          cp beta-site/build-info.json android/app/src/main/assets/public/build-info.json
+          cmp index.html beta-site/index.html
+          cmp index.html android/app/src/main/assets/public/index.html
+      - name: Install Android SDK packages
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;35.0.0"'
+      - name: Assemble debug APK
+        working-directory: android
+        run: bash gradlew --no-daemon --max-workers=2 assembleDebug
+      - name: Fetch previous v0.5 APK for certificate inspection
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: puzzle-connect-v0.5-debug-3
+          run-id: 40212433474
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: old-artifact
+      - name: Verify signature, package, version and embedded game
+        run: |
+          set -euo pipefail
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          TOOLS="$ANDROID_HOME/build-tools/35.0.0"
+          mkdir -p artifacts
+          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" | tee artifacts/signature.txt
+          "$TOOLS/aapt" dump badging "$APK" > artifacts/apk-metadata.txt
+          node -e "const s=require('fs').readFileSync('artifacts/apk-metadata.txt','utf8');if(!s.includes(\"package: name='com.sacredcattoucher.puzzleconnect.beta' versionCode='2' versionName='0.5.1-beta'\"))throw Error('Unexpected APK identity/version')"
+          unzip -p "$APK" assets/public/index.html | cmp index.html -
+          unzip -p "$APK" assets/public/build-info.json | cmp beta-site/build-info.json -
+          cp "$APK" artifacts/puzzle-connect-beta-debug.apk
+          cp -R beta-site artifacts/beta-site
+          printf 'commit=%s\nrun=%s\nhtml_sha256=%s\n' "$GITHUB_SHA" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$(sha256sum index.html | cut -d' ' -f1)" > artifacts/build-info.txt
+          printf '%s\n' 'Stable applicationId: com.sacredcattoucher.puzzleconnect (versionCode 1)' 'Beta applicationId: com.sacredcattoucher.puzzleconnect.beta (versionCode 2)' 'Separate side-by-side installation; does NOT overwrite stable v0.5. Keep the old app installed.' 'Runner-generated debug signing is not a guaranteed persistent update key.' > artifacts/install-compatibility.txt
+          if [ -f old-artifact/puzzle-connect-v0.5-debug.apk ]; then
+            "$TOOLS/apksigner" verify --print-certs old-artifact/puzzle-connect-v0.5-debug.apk > artifacts/old-signature.txt
+            "$TOOLS/aapt" dump badging old-artifact/puzzle-connect-v0.5-debug.apk > artifacts/old-apk-metadata.txt
+          else
+            printf '%s\n' 'Old APK unavailable; certificate comparison was not performed.' > artifacts/old-signature.txt
+          fi
+          (cd artifacts && sha256sum puzzle-connect-beta-debug.apk beta-site/index.html beta-site/build-info.json > SHA256SUMS.txt)
+      - name: Upload APK and byte-identical beta website bundle
+        id: bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: puzzle-connect-beta-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish build summary (no Pages deployment)
+        run: |
+          echo '### Beta artifacts' >> "$GITHUB_STEP_SUMMARY"
+          echo '40 tests and web check passed; APK HTML matches beta-site/index.html.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'APK and website bundle: ${{ steps.bundle.outputs.artifact-url }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Pages beta is not deployed: stable main Pages remains untouched.' >> "$GITHUB_STEP_SUMMARY"
+          cat artifacts/build-info.txt artifacts/install-compatibility.txt >> "$GITHUB_STEP_SUMMARY"
