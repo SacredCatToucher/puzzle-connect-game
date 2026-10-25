@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 export const BASE_COMMIT='aa3bc1a6b3b72f950b3cfea7235e6ee5df58e343';
 export const HTML_BLOB='0314905c63e4b38b947e15335e9bfa7c3a26f3e1';
-export function loadOracle(file=new URL('../../index.html',import.meta.url)) {
+export function loadOracle(file=new URL('./fixtures/v0.5.html',import.meta.url)) {
   const html=readFileSync(file,'utf8');
   const blob=createHash('sha1').update('blob '+Buffer.byteLength(html)+'\0').update(html).digest('hex');
   if(blob!==HTML_BLOB) throw Error('index.html differs from audited v0.5 blob: '+blob);
