@@ -57,7 +57,7 @@ bash gradlew --no-daemon assembleDebug
 ### 依賴固定與可重現性
 
 - Capacitor core／android／cli 全部固定為 8.5.3；`package-lock.json` 鎖住 npm 間接依賴與完整性雜湊，CI 使用 `npm ci`，不要刪除 lockfile。
-- 固定 Node 24.17.0、Temurin JDK 21.0.8+9、Android platform 36／build-tools 35.0.0、AGP 8.13.0、Gradle 8.14.3；Gradle 下載另以 SHA-256 驗證。AndroidX 等版本在 `android/variables.gradle` 指定。
+- 固定 Node 24.17.0、Temurin JDK 21.0.13+9.0.LTS、Android platform 36／build-tools 35.0.0、AGP 8.13.0、Gradle 8.14.3；Gradle 下載另以 SHA-256 驗證。AndroidX 等版本在 `android/variables.gradle` 指定。
 - 新 workflow 的 Actions 以 commit SHA 固定。SDK patch、runner 系統映像與 Maven 間接依賴仍受上游供應影響；這是可重跑的固定版本建置流程，不宣稱 APK 每次逐位元相同（debug 簽章也會不同）。
 - 升級依賴請另做變更、更新 lockfile，並確認 APK 與網站檢查都成功。不要把本機 SDK、node_modules、簽章金鑰或編譯產物提交到 repo。
 
