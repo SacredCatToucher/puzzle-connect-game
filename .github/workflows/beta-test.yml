@@ -2,6 +2,15 @@ name: Beta test build
 on:
   push:
     branches: [feature/group-visuals-number-toggle]
+    paths:
+      - 'index.html'
+      - 'android/**'
+      - 'package*.json'
+      - '.nvmrc'
+      - 'capacitor.config.json'
+      - 'scripts/check-*'
+      - 'scripts/prepare-beta.mjs'
+      - 'analysis/**'
   workflow_dispatch:
 permissions:
   contents: read
