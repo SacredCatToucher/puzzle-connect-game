@@ -1,0 +1,49 @@
+{
+  "scope": "A2 one-step reversibility only",
+  "sourceCommit": "d7f2cb0dc78b0e4fa1cfde5a0bd6c96171db95f6",
+  "modelGitBlob": "d4d826145b954ea71465ff87d185ee4d13b76e34",
+  "indexHtmlGitBlob": "0314905c63e4b38b947e15335e9bfa7c3a26f3e1",
+  "states": 362880,
+  "actionsPerState": 72,
+  "totalActionTransitions": 26127360,
+  "uniqueDirectedTransitions": 14383754,
+  "duplicateActionTransitions": 11743606,
+  "irreversibleUniqueTransitions": 543026,
+  "irreversibleActionTransitions": 1092168,
+  "selfLoopActions": 0,
+  "ignoredSameCellSelections": 3265920,
+  "coveredStates": 362880,
+  "coverage": 1,
+  "witness": {
+    "fromRank": 1,
+    "toRank": 0,
+    "A": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      7
+    ],
+    "B": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "action": {
+      "from": 7,
+      "to": 8
+    },
+    "legalReturnActions": 0
+  },
+  "typedArrayBytes": 107775360
+}
