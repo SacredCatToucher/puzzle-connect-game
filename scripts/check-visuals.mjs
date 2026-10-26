@@ -13,7 +13,8 @@ export async function runBrowserTests(browser,html,{screenshot}={}){
   const test=async(name,fn)=>{await fn();passed++;};
   const goal=[0,1,2,3,4,5,6,7,8];
   const image='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><defs><linearGradient id="g"><stop stop-color="#ff7d45"/><stop offset="1" stop-color="#276ad9"/></linearGradient></defs><rect width="600" height="600" fill="url(#g)"/><path d="M0 0L600 600M0 600L600 0M0 300H600M300 0V600" stroke="#172338" stroke-width="6"/></svg>');
-  const set=async(a,img=image,n=3)=>page.evaluate(([a,img,n])=>window.__visualTest.set(a,img,n),[a,img,n]);
+  const idle=()=>page.waitForFunction(()=>document.getElementById('board').dataset.motion==='idle');
+  const set=async(a,img=image,n=3)=>{await idle();return page.evaluate(([a,img,n])=>window.__visualTest.set(a,img,n),[a,img,n])};
   const edges=()=>page.locator('.tile').evaluateAll(ts=>ts.map(t=>['top','right','bottom','left'].map(s=>t.style.getPropertyValue('--edge-'+s))));
   await test('numbers default off in both modes',async()=>{
     assert.equal(await page.locator('#show-numbers').isChecked(),false);
@@ -51,7 +52,7 @@ export async function runBrowserTests(browser,html,{screenshot}={}){
   });
   await test('original click move reforms group and updates borders immediately',async()=>{
     await set([0,1,8,3,4,5,6,7,2]);
-    await page.locator('.tile').nth(2).click();await page.locator('.tile').nth(8).click();
+    await page.locator('.tile').nth(2).click();await page.locator('.tile').nth(8).click();await idle();
     same((await page.evaluate(()=>window.__visualTest.state())).board,goal);
     same((await edges())[4],['0px','0px','0px','0px']);
   });
@@ -60,7 +61,7 @@ export async function runBrowserTests(browser,html,{screenshot}={}){
     await page.evaluate(()=>{window.__firstTile=document.querySelector('.tile')});
     const a=await page.locator('.tile').nth(0).boundingBox(),b=await page.locator('.tile').nth(1).boundingBox();
     await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();
-    await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:8});await page.mouse.up();
+    await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:8});await page.mouse.up();await idle();
     const state=await page.evaluate(()=>window.__visualTest.state());
     same(state.board,[2,0,1,5,3,4,8,6,7]);assert.equal(state.moves,1);
     const e=await edges();assert.equal(e[0][1],'2px');assert.equal(e[1][3],'2px');
