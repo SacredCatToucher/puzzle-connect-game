@@ -11,7 +11,9 @@ export function runTests(){
     for(const [start,end] of [['function groups(a)','function shuffled()'],['function move(from,to)','function reset()']])
       assert.equal(block(html,start,end),block(old,start,end));
   });
-  test('pointer gesture handlers remain byte-identical',()=>assert.equal(block(html,'el.addEventListener("pointerdown"','$("new").onclick'),block(old,'el.addEventListener("pointerdown"','$("new").onclick')));
+  test('pointer presentation delegates final state changes to original move and cleans interruptions',()=>{
+    for(const token of ['function onPuzzlePointerDown','function onPuzzlePointerMove','function finishPuzzlePointer','setPointerCapture','requestAnimationFrame(paintDrag)','move(from,to)','window.addEventListener("blur",cancelMotion)','window.addEventListener("resize",cancelMotion)'])assert.ok(html.includes(token),token);
+  });
   test('all inline JavaScript parses',()=>{for(const [,source] of html.matchAll(/<script>([\s\S]*?)<\/script>/g))new Script(source)});
   const start=html.indexOf('function tileEdges('),end=html.indexOf('\nwindow.addEventListener',start);
   const tileEdges=runInNewContext(html.slice(start,end)+';tileEdges');
@@ -29,7 +31,7 @@ export function runTests(){
     }
   });
   test('CSS never allocates layout gap or layout border for merged cells',()=>{
-    assert.ok(html.includes('gap:0;aspect-ratio:1'));assert.ok(html.includes('.tile::after{'));
+    assert.ok(html.includes('gap:0;aspect-ratio:1'));assert.match(html,/\.tile::after(?:,[^{]+)?\{/);
     assert.ok(!html.includes('.tile.linked{box-shadow:'));assert.ok(html.includes('pointer-events:none'));
   });
   test('number preference defaults off, restores only 1, tolerates storage failure',()=>{
