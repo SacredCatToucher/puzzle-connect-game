@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>拼圖連連 v0.5</title>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>拼圖連連 B1.5 Beta</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#101827;color:#eef4ff;font:16px system-ui,-apple-system,sans-serif}main{max-width:520px;margin:auto;padding:18px 16px 48px}h1{margin:5px 0;font-size:26px}.sub,.help{color:#b0c0d6;font-size:13px;line-height:1.65}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.stat{background:#22344f;border-radius:12px;padding:10px;text-align:center}.stat b{display:block;font-size:21px}.stat small{font-size:11px;color:#bbcadb}#board{display:grid;gap:0;aspect-ratio:1;touch-action:none;user-select:none;background:#304966;padding:5px;border-radius:13px}.tile{background:#cbdcf0;border-radius:4px;color:#15243b;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,7vw,34px);font-weight:800;touch-action:none;overflow:hidden;position:relative}.tile::after{content:"";position:absolute;inset:0;border-style:solid;border-color:#fff;border-width:var(--edge-top,2px) var(--edge-right,2px) var(--edge-bottom,2px) var(--edge-left,2px);border-radius:inherit;pointer-events:none}.tile .num{display:none}#board.show-numbers .num{display:block}.number-debug{display:flex;align-items:center;gap:7px;margin-top:12px;font-size:13px;color:#bbcadb}.number-debug[hidden]{display:none}.number-debug input{width:18px;height:18px;accent-color:#427fe2}.tile.selected{outline:3px solid #ffc76c;outline-offset:-3px}.tile .num{background:#ffffffc9;padding:2px 7px;border-radius:6px}.tile.photo .num{font-size:11px;position:absolute;right:2px;bottom:2px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0}button,select,.upload{font:inherit;color:white;background:#2b466b;border:1px solid #55769b;border-radius:11px;padding:11px;cursor:pointer}button.primary{background:#427fe2}.panel{background:#1b2b42;border-radius:13px;padding:13px;margin-top:13px}.panel h2{font-size:16px;margin:0 0 9px}.settings{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.settings select{padding:7px}.upload{padding:8px;font-size:13px}.upload input{display:none}#status{min-height:26px;color:#87edc0;font-size:14px;margin-top:9px}.version{font-size:12px;color:#c0d2ee}#error{white-space:pre-wrap;color:#ffb6b6;font-size:12px}
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#eef4ff;font:16px system-ui,-apple-system,sans-serif}main{max-width:520px;margin:auto;padding:18px 16px 48px}h1{margin:5px 0;font-size:26px}.sub,.help{color:#b0c0d6;font-size:13px;line-height:1.65}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.stat{background:#22344f;border-radius:12px;padding:10px;text-align:center}.stat b{display:block;font-size:21px}.stat small{font-size:11px;color:#bbcadb}#board{display:grid;gap:0;aspect-ratio:1;touch-action:none;user-select:none;background:#304966;padding:5px;border-radius:13px}.tile,.motion-tile{background:#cbdcf0;border-radius:4px;color:#15243b;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,7vw,34px);font-weight:800;touch-action:none;overflow:hidden;position:relative}.tile::after,.motion-tile::after{content:"";position:absolute;inset:0;border-style:solid;border-color:#fff;border-width:var(--edge-top,2px) var(--edge-right,2px) var(--edge-bottom,2px) var(--edge-left,2px);border-radius:inherit;pointer-events:none}.tile .num,.motion-tile .num{display:none}#board.show-numbers .num,.motion-layer.show-numbers .num{display:block}.number-debug{display:flex;align-items:center;gap:7px;margin-top:12px;font-size:13px;color:#bbcadb}.number-debug[hidden]{display:none}.number-debug input{width:18px;height:18px;accent-color:#427fe2}.tile.selected{outline:3px solid #ffc76c;outline-offset:-3px}.tile .num,.motion-tile .num{background:#ffffffc9;padding:2px 7px;border-radius:6px}.tile.photo .num,.motion-tile.photo .num{font-size:11px;position:absolute;right:2px;bottom:2px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0}button,select,.upload{font:inherit;color:white;background:#2b466b;border:1px solid #55769b;border-radius:11px;padding:11px;cursor:pointer}button.primary{background:#427fe2}.panel{background:#1b2b42;border-radius:13px;padding:13px;margin-top:13px}.panel h2{font-size:16px;margin:0 0 9px}.settings{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.settings select{padding:7px}.upload{padding:8px;font-size:13px}.upload input{display:none}#status{min-height:26px;color:#87edc0;font-size:14px;margin-top:9px}.version{font-size:12px;color:#c0d2ee}#error{white-space:pre-wrap;color:#ffb6b6;font-size:12px}
+.motion-layer{position:fixed;inset:0;z-index:1000;pointer-events:none;overflow:hidden;contain:layout style}.motion-tile{pointer-events:none}.motion-tile::after{pointer-events:none}@media(prefers-reduced-motion:reduce){.motion-tile{animation:none!important;transition:none!important}}
 </style></head><body><main>
-<h1>🧩 拼圖連連 <span class="version">v0.2</span></h1><div class="sub">任意交換 · 自動連結 · 群組移動</div>
+<h1>🧩 拼圖連連 <span class="version">B1.5 Beta</span></h1><div class="sub">任意交換 · 自動連結 · 群組移動</div>
 <div class="stats"><div class="stat"><small>移動次數</small><b id="moves">0</b></div><div class="stat"><small>連結群組</small><b id="groups">0</b></div><div class="stat"><small>完成度</small><b id="progress">0%</b></div></div>
 <div id="board"></div><div id="status" role="status"></div><div id="error"></div>
 <div class="controls"><button class="primary" id="new">↻ 新關卡</button><button id="hint">👁 顯示答案</button></div>
@@ -51,12 +52,135 @@ function render(){
   $("moves").textContent=moves;$("groups").textContent=gs.filter(g=>g.length>1).length;
   $("progress").textContent=Math.round(board.filter((v,i)=>v===i).length/board.length*100)+"%";
 }
+
+// Presentation-only controller. move() below remains the original rule implementation.
+const motionPreference=matchMedia("(prefers-reduced-motion: reduce)");
+let motionBusy=false,motionLayer=null,motionGhosts=new Map(),motionAnimations=[],motionFrame=0,motionEpoch=0;
+let lockedControls=[];
+el.dataset.motion="idle";
+function lockMotionControls(){
+  if(lockedControls.length)return;
+  lockedControls=[...document.querySelectorAll("button,input,select")].map(control=>[control,control.disabled]);
+  for(const [control] of lockedControls)control.disabled=true;
+}
+function releaseMotionControls(){for(const [control,disabled] of lockedControls)control.disabled=disabled;lockedControls=[]}
+function motionTransform(x,y){return "translate3d("+x+"px,"+y+"px,0)"}
+function ensureMotionLayer(){
+  if(motionLayer)return;
+  motionLayer=document.createElement("div");
+  motionLayer.className="motion-layer"+(el.classList.contains("show-numbers")?" show-numbers":"");
+  motionLayer.setAttribute("aria-hidden","true");document.body.appendChild(motionLayer);
+}
+function addMotionGhost(value,index,rect){
+  if(motionGhosts.has(value))return motionGhosts.get(value);
+  ensureMotionLayer();
+  const tile=el.children[index],ghost=tile.cloneNode(true);
+  ghost.classList.remove("tile","selected");ghost.classList.add("motion-tile");
+  ghost.dataset.value=value;
+  Object.assign(ghost.style,{position:"absolute",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",margin:"0",pointerEvents:"none",willChange:"transform"});
+  motionLayer.appendChild(ghost);tile.style.opacity="0";
+  const item={node:ghost,index,x:0,y:0};motionGhosts.set(value,item);return item;
+}
+function cleanMotion(){
+  motionEpoch++;cancelAnimationFrame(motionFrame);motionFrame=0;
+  for(const animation of motionAnimations)animation.cancel();motionAnimations=[];
+  motionLayer?.remove();motionLayer=null;motionGhosts.clear();
+  for(const tile of el.children)tile.style.opacity="";
+  motionBusy=false;el.dataset.motion="idle";releaseMotionControls();
+}
+function releaseGestureCapture(id){try{if(el.hasPointerCapture(id))el.releasePointerCapture(id)}catch{}}
+function cancelMotion(){
+  const id=start?.id;start=null;dragging=false;
+  if(id!==undefined)releaseGestureCapture(id);
+  cleanMotion();
+}
+function paintDrag(){
+  motionFrame=0;if(!start||!dragging)return;
+  const dx=start.lastX-start.x,dy=start.lastY-start.y;
+  for(const p of start.group){
+    const item=motionGhosts.get(start.before[p]);if(!item)continue;
+    item.x=dx;item.y=dy;item.node.style.transform=motionTransform(dx,dy);
+  }
+}
+function beginVisualDrag(){
+  dragging=true;el.dataset.motion="dragging";lockMotionControls();
+  for(const p of start.group)addMotionGhost(start.before[p],p,start.rects[p]).node.style.zIndex="2";
+}
+function animateSwap(from,to,gesture=null){
+  if(motionBusy)return;
+  if(!gesture&&from===to)return;
+  if(motionFrame){cancelAnimationFrame(motionFrame);motionFrame=0}
+  const before=gesture?.before||board.slice();
+  const rects=gesture?.rects||[...el.children].map(t=>t.getBoundingClientRect());
+  // Freeze each tile's old identity before move() updates the real board.
+  before.forEach((value,p)=>addMotionGhost(value,p,rects[p]));
+  motionBusy=true;el.dataset.motion="settling";lockMotionControls();
+  try{if(from!==null&&to!==null&&from!==to)move(from,to)}catch(error){cleanMotion();throw error}
+  const destinations=new Map(board.map((value,p)=>[value,p]));
+  if(motionPreference.matches){cleanMotion();return}
+  const epoch=motionEpoch;
+  motionAnimations=[];
+  for(const [value,item] of motionGhosts){
+    const origin=rects[item.index],target=rects[destinations.get(value)];
+    const x=target.left-origin.left,y=target.top-origin.top;
+    // Keep the current finger position as the animation's first frame.
+    if(item.x===x&&item.y===y)continue;
+    item.node.style.transform=motionTransform(item.x,item.y);
+    motionAnimations.push(item.node.animate([
+      {transform:motionTransform(item.x,item.y)},{transform:motionTransform(x,y)}
+    ],{duration:200,easing:"cubic-bezier(.2,.8,.2,1)",fill:"forwards"}));
+  }
+  if(!motionAnimations.length){cleanMotion();return}
+  Promise.all(motionAnimations.map(animation=>animation.finished.catch(()=>{}))).then(()=>{
+    if(epoch===motionEpoch)cleanMotion();
+  });
+}
+function onPuzzlePointerDown(e){
+  if(motionBusy||start||(e.pointerType==="mouse"&&e.button!==0))return;
+  const tile=e.target.closest(".tile");if(!tile||!el.contains(tile))return;
+  const i=+tile.dataset.index;
+  start={i,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,id:e.pointerId,
+    group:groups(board).find(g=>g.includes(i)),before:board.slice(),
+    rects:[...el.children].map(t=>t.getBoundingClientRect())};
+  dragging=false;try{el.setPointerCapture(e.pointerId)}catch{}
+  e.preventDefault();
+}
+function onPuzzlePointerMove(e){
+  if(!start||e.pointerId!==start.id)return;
+  start.lastX=e.clientX;start.lastY=e.clientY;
+  if(!dragging&&Math.hypot(start.lastX-start.x,start.lastY-start.y)>12)beginVisualDrag();
+  if(dragging&&!motionFrame)motionFrame=requestAnimationFrame(paintDrag);
+}
+function finishPuzzlePointer(e,cancelled=false){
+  if(!start||e.pointerId!==start.id)return;
+  if(!cancelled){start.lastX=e.clientX;start.lastY=e.clientY}
+  if(motionFrame){cancelAnimationFrame(motionFrame);motionFrame=0}
+  if(dragging)paintDrag();
+  const gesture=start,wasDragging=dragging;
+  start=null;dragging=false;releaseGestureCapture(gesture.id);
+  if(wasDragging){
+    const tile=cancelled?null:document.elementFromPoint(e.clientX,e.clientY)?.closest(".tile");
+    const target=tile&&el.contains(tile)?+tile.dataset.index:null;
+    animateSwap(target===null?null:gesture.i,target,gesture);return;
+  }
+  if(cancelled)return;
+  if(selected===null){selected=gesture.i;$("status").textContent="請選擇目的地";render()}
+  else animateSwap(selected,gesture.i);
+}
+el.addEventListener("pointerdown",onPuzzlePointerDown);
+el.addEventListener("pointermove",onPuzzlePointerMove);
+window.addEventListener("pointerup",e=>finishPuzzlePointer(e));
+window.addEventListener("pointercancel",e=>finishPuzzlePointer(e,true));
+el.addEventListener("lostpointercapture",e=>{if(start?.id===e.pointerId)finishPuzzlePointer(e,true)});
+el.addEventListener("dragstart",e=>e.preventDefault());
+window.addEventListener("blur",cancelMotion);
+window.addEventListener("resize",cancelMotion);
+window.addEventListener("scroll",()=>{if(start||motionBusy)cancelMotion()},{passive:true});
+document.addEventListener("visibilitychange",()=>{if(document.hidden)cancelMotion()});
+motionPreference.addEventListener("change",()=>{if(motionBusy)cancelMotion()});
+
 function move(from,to){if(from===to)return;let g=groups(board).find(g=>g.includes(from));if(g.length===1){[board[from],board[to]]=[board[to],board[from]];moves++;selected=null;$("status").textContent=board.every((v,i)=>v===i)?"🎉 完成！共 "+moves+" 次移動":"";render();return}let dr=Math.floor(to/n)-Math.floor(from/n),dc=to%n-from%n;let moved=new Map(),old=new Set(g);for(let p of g){let r=Math.floor(p/n)+dr,c=p%n+dc;if(r>=0&&r<n&&c>=0&&c<n)moved.set(r*n+c,board[p])}let sources=new Set([...moved.values()].map(v=>board.indexOf(v)));let destinations=new Set(moved.keys());let vacated=[...sources].filter(p=>!destinations.has(p)).sort((a,b)=>a-b);let displaced=[...destinations].filter(p=>!sources.has(p)).sort((a,b)=>a-b).map(p=>board[p]);let target=board.slice();for(let [p,v] of moved)target[p]=v;for(let k=0;k<vacated.length;k++)target[vacated[k]]=displaced[k];if(new Set(target).size!==n*n)throw Error("拼圖排列驗證失敗");board=target;moves++;selected=null;$("status").textContent=board.every((v,i)=>v===i)?"🎉 完成！共 "+moves+" 次移動":"";render()}
-function reset(){board=shuffled();moves=0;selected=null;$("status").textContent="新關卡開始！";render()}
-el.addEventListener("pointerdown",e=>{let t=e.target.closest(".tile");if(!t)return;start={i:+t.dataset.index,x:e.clientX,y:e.clientY,id:e.pointerId};dragging=false});
-el.addEventListener("pointermove",e=>{if(start&&e.pointerId===start.id&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>12)dragging=true});
-window.addEventListener("pointerup",e=>{if(!start||e.pointerId!==start.id)return;let s=start;start=null;let t=document.elementFromPoint(e.clientX,e.clientY)?.closest(".tile");if(dragging){dragging=false;if(t&&el.contains(t))move(s.i,+t.dataset.index);return}if(selected===null){selected=s.i;$("status").textContent="請選擇目的地";render()}else move(selected,s.i)});
-window.addEventListener("pointercancel",()=>{start=null;dragging=false});
+function reset(){cancelMotion();board=shuffled();moves=0;selected=null;$("status").textContent="新關卡開始！";render()}
 $("new").onclick=reset;$("size").onchange=e=>{n=+e.target.value;reset()};$("numbers").onclick=()=>{photo=null;render()};$("photo").onchange=e=>{let f=e.target.files?.[0];if(!f)return;let reader=new FileReader();reader.onload=()=>{photo=reader.result;reset()};reader.readAsDataURL(f)};
 $("hint").onclick=()=>{$("status").textContent="正確答案：0 到 "+(n*n-1)+"，由左到右、由上到下排列"};
 $("number-debug").hidden=!ENABLE_NUMBER_DEBUG;
