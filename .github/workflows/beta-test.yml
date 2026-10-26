@@ -1,8 +1,9 @@
 name: Beta test build
 on:
   push:
-    branches: [feature/group-visuals-number-toggle]
+    branches: [feature/drag-swap-animation]
     paths:
+      - '.github/workflows/beta-test.yml'
       - 'index.html'
       - 'android/**'
       - 'package*.json'
@@ -51,6 +52,7 @@ jobs:
         run: |
           node scripts/check-visuals.mjs
           node scripts/check-beta-smoke.mjs
+          node scripts/check-motion.mjs
       - name: Prepare website bundle and sync byte-identical Android assets
         run: |
           node scripts/prepare-beta.mjs
@@ -63,12 +65,12 @@ jobs:
       - name: Assemble debug APK
         working-directory: android
         run: bash gradlew --no-daemon --max-workers=2 assembleDebug
-      - name: Fetch previous v0.5 APK for certificate inspection
+      - name: Preserve previous verified Beta APK for rollback
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: puzzle-connect-v0.5-debug-3
-          run-id: 40212433474
+          name: puzzle-connect-beta-3c412a014155fb80ef9383de8e2cbbc755e94600
+          run-id: 40222036907
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: old-artifact
       - name: Verify signature, package, version and embedded game
@@ -79,16 +81,19 @@ jobs:
           mkdir -p artifacts
           "$TOOLS/apksigner" verify --verbose --print-certs "$APK" | tee artifacts/signature.txt
           "$TOOLS/aapt" dump badging "$APK" > artifacts/apk-metadata.txt
-          node -e "const s=require('fs').readFileSync('artifacts/apk-metadata.txt','utf8');if(!s.includes(\"package: name='com.sacredcattoucher.puzzleconnect.beta' versionCode='2' versionName='0.5.1-beta'\"))throw Error('Unexpected APK identity/version')"
+          node -e "const s=require('fs').readFileSync('artifacts/apk-metadata.txt','utf8');if(!s.includes(\"package: name='com.sacredcattoucher.puzzleconnect.beta.b15' versionCode='3' versionName='0.5.2-beta'\"))throw Error('Unexpected APK identity/version')"
           unzip -p "$APK" assets/public/index.html | cmp index.html -
           unzip -p "$APK" assets/public/build-info.json | cmp beta-site/build-info.json -
           cp "$APK" artifacts/puzzle-connect-beta-debug.apk
           cp -R beta-site artifacts/beta-site
           printf 'commit=%s\nrun=%s\nhtml_sha256=%s\n' "$GITHUB_SHA" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$(sha256sum index.html | cut -d' ' -f1)" > artifacts/build-info.txt
-          printf '%s\n' 'Stable applicationId: com.sacredcattoucher.puzzleconnect (versionCode 1)' 'Beta applicationId: com.sacredcattoucher.puzzleconnect.beta (versionCode 2)' 'Separate side-by-side installation; does NOT overwrite stable v0.5. Keep the old app installed.' 'Runner-generated debug signing is not a guaranteed persistent update key.' > artifacts/install-compatibility.txt
-          if [ -f old-artifact/puzzle-connect-v0.5-debug.apk ]; then
-            "$TOOLS/apksigner" verify --print-certs old-artifact/puzzle-connect-v0.5-debug.apk > artifacts/old-signature.txt
-            "$TOOLS/aapt" dump badging old-artifact/puzzle-connect-v0.5-debug.apk > artifacts/old-apk-metadata.txt
+          printf '%s\n' 'Stable applicationId: com.sacredcattoucher.puzzleconnect (versionCode 1)' 'B1.5 Beta applicationId: com.sacredcattoucher.puzzleconnect.beta.b15 (versionCode 3)' 'Separate side-by-side installation; does NOT overwrite stable v0.5 or the previous Beta. Keep both installed.' 'Runner-generated debug signing is not a guaranteed persistent update key.' > artifacts/install-compatibility.txt
+          if [ -f old-artifact/puzzle-connect-beta-debug.apk ]; then
+            mkdir -p artifacts/rollback
+            cp old-artifact/puzzle-connect-beta-debug.apk artifacts/rollback/puzzle-connect-0.5.1-beta-debug.apk
+            cp old-artifact/build-info.txt artifacts/rollback/build-info.txt
+            "$TOOLS/apksigner" verify --print-certs old-artifact/puzzle-connect-beta-debug.apk > artifacts/old-signature.txt
+            "$TOOLS/aapt" dump badging old-artifact/puzzle-connect-beta-debug.apk > artifacts/old-apk-metadata.txt
           else
             printf '%s\n' 'Old APK unavailable; certificate comparison was not performed.' > artifacts/old-signature.txt
           fi
@@ -104,7 +109,7 @@ jobs:
       - name: Publish build summary (no Pages deployment)
         run: |
           echo '### Beta artifacts' >> "$GITHUB_STEP_SUMMARY"
-          echo '40 tests and web check passed; APK HTML matches beta-site/index.html.' >> "$GITHUB_STEP_SUMMARY"
+          echo '52 tests and web check passed; APK HTML matches beta-site/index.html.' >> "$GITHUB_STEP_SUMMARY"
           echo 'APK and website bundle: ${{ steps.bundle.outputs.artifact-url }}' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Pages beta is not deployed: stable main Pages remains untouched.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Pages is published separately by the protected combined Pages workflow; stable main stays untouched.' >> "$GITHUB_STEP_SUMMARY"
           cat artifacts/build-info.txt artifacts/install-compatibility.txt >> "$GITHUB_STEP_SUMMARY"
