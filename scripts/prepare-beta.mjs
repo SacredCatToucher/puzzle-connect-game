@@ -7,7 +7,7 @@ await copyFile('index.html','beta-site/index.html');
 const html=await readFile('index.html');
 await writeFile('beta-site/build-info.json',JSON.stringify({
   channel:'beta',commit,htmlSha256:createHash('sha256').update(html).digest('hex'),
-  androidApplicationId:'com.sacredcattoucher.puzzleconnect.beta',androidVersionCode:2,
+  androidApplicationId:'com.sacredcattoucher.puzzleconnect.beta.b15',androidVersionCode:3,
   note:'Website and APK must have identical index.html. This artifact is ready for independent hosting; it does not change stable Pages.'
 },null,2)+'\n');
 console.log('Prepared byte-identical beta-site/index.html for '+commit);
