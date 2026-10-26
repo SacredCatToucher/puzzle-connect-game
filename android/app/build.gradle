@@ -8,8 +8,8 @@ android {
         applicationId "com.sacredcattoucher.puzzleconnect"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "0.5.1"
+        versionCode 3
+        versionName "0.5.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -20,7 +20,7 @@ android {
     buildTypes {
         debug {
             // Separate install preserves the existing v0.5 app and its local data.
-            applicationIdSuffix ".beta"
+            applicationIdSuffix ".beta.b15"
             versionNameSuffix "-beta"
         }
         release {
